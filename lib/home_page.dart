@@ -1,26 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // For storing token
+import 'package:mobile_grabfood/login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
+// Import for navigation (replace with your implementation)
+import '../navigation_service.dart'; // Assuming NavigationService
 
-class _HomePageState extends State<HomePage> {
-  String _token = ''; // Variable to store token (initially empty)
-
-  Future<void> _checkLoginStatus() async {
+class HomePage extends StatelessWidget {
+  Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
-    final storedToken = prefs.getString('token');
-    setState(() {
-      _token = storedToken ?? ''; // Set token from SharedPreferences or empty string
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _checkLoginStatus(); // Check login status on initialization
+    await prefs.remove('token');
+    // Implement logic to navigate back to login or another screen
+    NavigationService.instance.push(LoginPage()); // Assuming login route
   }
 
   @override
@@ -28,26 +18,40 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shopping_cart),
+            onPressed: () {
+              // Handle cart button press (navigate to cart page if needed)
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Welcome to the Home Page!'),
-            if (_token.isNotEmpty) Text('Token: $_token'), // Display token if available
-            ElevatedButton(
-              onPressed: () async {
-                // Simulate logout (remove token from SharedPreferences)
-                final prefs = await SharedPreferences.getInstance();
-                prefs.remove('token');
-                setState(() {
-                  _token = ''; // Clear token state
-                });
-              },
-              child: Text('Logout'),
-            ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Orders'),
+        ],
+        currentIndex: 0, // Set initial selected index (optional)
+        onTap: (index) {
+          // Handle navigation based on selected index
+          if (index == 1) {
+            // Navigate to orders page (replace with your implementation)
+            NavigationService.instance.push(HomePage()); // Assuming orders route
+          }
+        },
       ),
     );
   }

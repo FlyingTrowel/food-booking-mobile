@@ -1,7 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; // For making API requests (testing)
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../navigation_service.dart';
+import 'home_page.dart'; // Import navigation service
 
 class LoginPage extends StatefulWidget {
   @override
@@ -13,26 +15,43 @@ class _LoginPageState extends State<LoginPage> {
   String _email = '';
   String _password = '';
 
-  Future<void> login(String email, String password) async {
-    final url = Uri.parse('http://10.0.2.2:8000/mobile/login'); // Replace with your actual API URL
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Handle successful login (show success message, navigate)
-      print('Login successful!');
-      // ... (Implement success handling - navigate to home or other screen)
+  Future<void> _checkTokenAndNavigate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token != null) {
+      // Token exists, navigate to home
+      NavigationService.instance.push(HomePage());
     } else {
-      // Handle error (display error message)
-      print('Login failed: ${response.body}');
-      // ... (Show error message to user)
+      // No token, proceed with login
+      _login();
     }
+  }
+
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      // Simulate API call for login (replace with actual API call)
+      final response = await http.post(Uri.parse('http://10.0.2.2:8000/mobile/login'), body: {
+        'email': _email,
+        'password': _password,
+      });
+
+      if (response.statusCode == 200) {
+        // Handle successful login (store token and navigate)
+        final token = response.body; // Replace with actual token extraction
+        _storeToken(token);
+        NavigationService.instance.push(HomePage());
+      } else {
+        // Handle login error (show error message)
+        print('Login failed: ${response.body}');
+        // ... (Show error message to user)
+      }
+    }
+  }
+
+  void _storeToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
   }
 
   @override
@@ -70,13 +89,12 @@ class _LoginPageState extends State<LoginPage> {
                 onSaved: (value) => setState(() => _password = value!),
               ),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    login(_email, _password);
-                  }
-                },
+                onPressed: _checkTokenAndNavigate,
                 child: Text('Login'),
+              ),
+              TextButton(
+                onPressed: () => NavigationService.instance.push(HomePage()), // Navigate to registration
+                child: Text('Don\'t have an account? Register Here'),
               ),
             ],
           ),
