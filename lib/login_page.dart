@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // For making API requests (testing)
+import 'package:mobile_grabfood/registration_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../navigation_service.dart';
@@ -93,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text('Login'),
               ),
               TextButton(
-                onPressed: () => NavigationService.instance.push(HomePage()), // Navigate to registration
+                onPressed: () => NavigationService.instance.push(RegistrationPage()), // Navigate to registration
                 child: Text('Don\'t have an account? Register Here'),
               ),
             ],
